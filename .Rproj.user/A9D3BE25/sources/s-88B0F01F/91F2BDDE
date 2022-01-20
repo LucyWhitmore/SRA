@@ -1,0 +1,32 @@
+{
+    "id": "91F2BDDE",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1642632255649.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "expression": "cashchoice",
+        "caption": "cashchoice",
+        "totalObservations": "11657",
+        "displayedObservations": "11657",
+        "variables": "4",
+        "cacheKey": "3D3445E1",
+        "object": "cashchoice",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=cashchoice&cache_key=3D3445E1&max_cols=50",
+        "preview": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 5062685013312877633,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1642632255649,
+    "read_only": false,
+    "read_only_alternatives": []
+}
