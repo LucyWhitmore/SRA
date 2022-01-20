@@ -1,0 +1,7 @@
+"0",""
+"0","delay_data_all %>% select(src_subject_id, ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week, ddis_scr_val_indif_pnt_1mth,"
+"0","                          ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr, ddis_scr_val_indif_pnt_5yr) %>%"
+"0","  pivot_longer(., cols = c(src_subject_id, ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week, ddis_scr_val_indif_pnt_1mth,"
+"0","                          ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr, ddis_scr_val_indif_pnt_5yr), names_to = ""Var"", values_to = ""Val"")"
+"2","Error: Can't combine `src_subject_id` <factor<cfa9b>> and `ddis_scr_val_indif_point_6h` <double>.
+"
