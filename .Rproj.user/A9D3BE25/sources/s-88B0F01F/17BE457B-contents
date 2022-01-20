@@ -343,6 +343,7 @@ sapply(delay_data_all, class)
 
 #delay expressed as proportion of maximum delay
 #subjective value expressed as proportion of nominal amount (subjective value divided by actual, delayed amount)
+    d0 = .25/1825
     d1 = .75/1825
     d2 = 6/1825
     d3 = 23/1825
@@ -351,32 +352,45 @@ sapply(delay_data_all, class)
     d6 = 1460/1825
 
 delay_data_all <- delay_data_all %>% 
-  mutate(crit_1 = ((ddis_scr_val_indif_pnt_1da - ddis_scr_val_indif_point_6h) > .2) |
-((ddis_scr_val_indif_pnt_1week - ddis_scr_val_indif_pnt_1da) > .2) |
-((ddis_scr_val_indif_pnt_1mth - ddis_scr_val_indif_pnt_1week) > .2) |
-((ddis_scr_val_indif_pnt_3mth - ddis_scr_val_indif_pnt_1mth) > .2) |
-((ddis_scr_val_indif_pnt_1yr - ddis_scr_val_indif_pnt_3mth) > .2) |
-((ddis_scr_val_indif_pnt_5yr - ddis_scr_val_indif_pnt_1yr) > .2)) %>% 
-  mutate(crit_2 = (ddis_scr_val_indif_pnt_5yr > (ddis_scr_val_indif_point_6h-.1))) %>% 
+  mutate(crit_1 = ((ddis_scr_val_indif_pnt_1da - ddis_scr_val_indif_point_6h) > 20) |
+((ddis_scr_val_indif_pnt_1week - ddis_scr_val_indif_pnt_1da) > 20) |
+((ddis_scr_val_indif_pnt_1mth - ddis_scr_val_indif_pnt_1week) > 20) |
+((ddis_scr_val_indif_pnt_3mth - ddis_scr_val_indif_pnt_1mth) > 20) |
+((ddis_scr_val_indif_pnt_1yr - ddis_scr_val_indif_pnt_3mth) > 20) |
+((ddis_scr_val_indif_pnt_5yr - ddis_scr_val_indif_pnt_1yr) > 20)) %>% 
+  mutate(crit_2 = (ddis_scr_val_indif_pnt_5yr > (ddis_scr_val_indif_point_6h-10))) %>% 
   mutate(exclude = crit_1 & crit_2) %>% 
   filter(exclude=="FALSE") %>%  #end exclusion, start calculating AUC
   drop_na(ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week, ddis_scr_val_indif_pnt_1mth,
           ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr, ddis_scr_val_indif_pnt_5yr) %>% 
-      mutate(dd_int1_2 = d1*((ddis_scr_val_indif_point_6h/100 - ddis_scr_val_indif_pnt_1da/100)/2),
-             dd_int2_2 = d2*((ddis_scr_val_indif_pnt_1da/100 - ddis_scr_val_indif_pnt_1week/100)/2),
-             dd_int3_2 = d3*((ddis_scr_val_indif_pnt_1week/100 - ddis_scr_val_indif_pnt_1mth/100)/2),
-             dd_int4_2 = d4*((ddis_scr_val_indif_pnt_1mth/100 - ddis_scr_val_indif_pnt_3mth/100)/2),
-             dd_int5_2 = d5*((ddis_scr_val_indif_pnt_3mth/100 - ddis_scr_val_indif_pnt_1yr/100)/2),
-             dd_int6_2 = d6*((ddis_scr_val_indif_pnt_1yr/100 - ddis_scr_val_indif_pnt_5yr/100)/2),
-             auc_2 = dd_int1_2 + dd_int2_2 + dd_int3_2 + dd_int4_2 + dd_int5_2 + dd_int6_2) %>% 
-     filter(auc_2 >= 0) %>%  #end AUC, calculate mean indifference point
+  mutate(ddis_scr_val_indif_point_6h = ddis_scr_val_indif_point_6h/100,
+         ddis_scr_val_indif_pnt_1da = ddis_scr_val_indif_pnt_1da/100,
+         ddis_scr_val_indif_pnt_1week = ddis_scr_val_indif_pnt_1week/100,
+         ddis_scr_val_indif_pnt_1mth = ddis_scr_val_indif_pnt_1mth/100,
+          ddis_scr_val_indif_pnt_3mth = ddis_scr_val_indif_pnt_3mth/100,
+         ddis_scr_val_indif_pnt_1yr = ddis_scr_val_indif_pnt_1yr/100,
+         ddis_scr_val_indif_pnt_5yr = ddis_scr_val_indif_pnt_5yr/100
+         ) %>% 
+      mutate(dd_int0 = d0*((1+ddis_scr_val_indif_point_6h)/2),
+             dd_int1 = d1*((ddis_scr_val_indif_point_6h + ddis_scr_val_indif_pnt_1da)/2),
+             dd_int2 = d2*((ddis_scr_val_indif_pnt_1da + ddis_scr_val_indif_pnt_1week)/2),
+             dd_int3 = d3*((ddis_scr_val_indif_pnt_1week + ddis_scr_val_indif_pnt_1mth)/2),
+             dd_int4 = d4*((ddis_scr_val_indif_pnt_1mth + ddis_scr_val_indif_pnt_3mth)/2),
+             dd_int5 = d5*((ddis_scr_val_indif_pnt_3mth + ddis_scr_val_indif_pnt_1yr)/2),
+             dd_int6 = d6*((ddis_scr_val_indif_pnt_1yr + ddis_scr_val_indif_pnt_5yr)/2),
+             auc = dd_int0 + dd_int1 + dd_int2 + dd_int3 + dd_int4 + dd_int5 + dd_int6) %>% 
+     #filter(auc_2 >= 0) %>%  #end AUC, calculate mean indifference point
      mutate(mean_indifference = rowMeans(select(., c(ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week,
                                                      ddis_scr_val_indif_pnt_1mth, ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr,
                                                      ddis_scr_val_indif_pnt_5yr))))
 ##
 
-ggplot(delay_data_all, aes(x=auc_2))+
+ggplot(delay_data_all, aes(x=auc))+
   geom_histogram()
 
+#delay_data_all %>% select(src_subject_id, ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week, ddis_scr_val_indif_pnt_1mth,
+     #                     ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr, ddis_scr_val_indif_pnt_5yr) %>%
+  #pivot_longer(., cols = c(src_subject_id, ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week, ddis_scr_val_indif_pnt_1mth,
+     #                     ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr, ddis_scr_val_indif_pnt_5yr), names_to = "Var", values_to = "Val")
 
 ```
