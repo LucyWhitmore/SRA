@@ -71,6 +71,7 @@ brainconn2<-rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/abcd_betnet02.t
   filter(between(rsfmri_c_ngd_dt_ngd_fo, quantile(rsfmri_c_ngd_dt_ngd_fo, .0025), quantile(rsfmri_c_ngd_dt_ngd_fo, .9975)))
 
 #Adding delay discounting here, w/ manual exclusion
+
 delay_data <- rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/abcd_yddss01.txt")%>%
   filter(!collection_title=="collection_title") %>%
   select(src_subject_id, interview_age, eventname, ddis_scr_val_immedcho,
@@ -79,8 +80,7 @@ delay_data <- rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/abcd_yddss01.
          ddis_scr_val_indif_pnt_1yr,ddis_scr_val_indif_pnt_5yr)%>%
   mutate(src_subject_id=as.factor(src_subject_id),
          interview_age=as.numeric(interview_age),
-         ddis_scr_val_immedcho = as.numeric(ddis_scr_val_immedcho),
-         ddis_scr_val_indif_pnt_1mth=as.numeric(ddis_scr_val_indif_pnt_1mth))%>%
+         ddis_scr_val_immedcho = as.numeric(ddis_scr_val_immedcho))%>%
   filter(eventname=="1_year_follow_up_y_arm_1")
 
 cols.num <- c("ddis_scr_val_indif_point_6h", "ddis_scr_val_indif_pnt_1da","ddis_scr_val_indif_pnt_1week", "ddis_scr_val_indif_pnt_1mth", "ddis_scr_val_indif_pnt_3mth", "ddis_scr_val_indif_pnt_1yr", "ddis_scr_val_indif_pnt_5yr")
@@ -89,6 +89,7 @@ sapply(delay_data, class)
 
 #delay expressed as proportion of maximum delay
 #subjective value expressed as proportion of nominal amount (subjective value divided by actual, delayed amount)
+ d0 = .25/1825
     d1 = .75/1825
     d2 = 6/1825
     d3 = 23/1825
@@ -97,25 +98,34 @@ sapply(delay_data, class)
     d6 = 1460/1825
 
 delay_data <- delay_data %>% 
-  mutate(crit_1 = ((ddis_scr_val_indif_pnt_1da - ddis_scr_val_indif_point_6h) > .2) |
-((ddis_scr_val_indif_pnt_1week - ddis_scr_val_indif_pnt_1da) > .2) |
-((ddis_scr_val_indif_pnt_1mth - ddis_scr_val_indif_pnt_1week) > .2) |
-((ddis_scr_val_indif_pnt_3mth - ddis_scr_val_indif_pnt_1mth) > .2) |
-((ddis_scr_val_indif_pnt_1yr - ddis_scr_val_indif_pnt_3mth) > .2) |
-((ddis_scr_val_indif_pnt_5yr - ddis_scr_val_indif_pnt_1yr) > .2)) %>% 
-  mutate(crit_2 = (ddis_scr_val_indif_pnt_5yr > (ddis_scr_val_indif_point_6h-.1))) %>% 
+  mutate(crit_1 = ((ddis_scr_val_indif_pnt_1da - ddis_scr_val_indif_point_6h) > 20) |
+((ddis_scr_val_indif_pnt_1week - ddis_scr_val_indif_pnt_1da) > 20) |
+((ddis_scr_val_indif_pnt_1mth - ddis_scr_val_indif_pnt_1week) > 20) |
+((ddis_scr_val_indif_pnt_3mth - ddis_scr_val_indif_pnt_1mth) > 20) |
+((ddis_scr_val_indif_pnt_1yr - ddis_scr_val_indif_pnt_3mth) > 20) |
+((ddis_scr_val_indif_pnt_5yr - ddis_scr_val_indif_pnt_1yr) > 20)) %>% 
+  mutate(crit_2 = (ddis_scr_val_indif_pnt_5yr > (ddis_scr_val_indif_point_6h-10))) %>% 
   mutate(exclude = crit_1 & crit_2) %>% 
   filter(exclude=="FALSE") %>%  #end exclusion, start calculating AUC
   drop_na(ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week, ddis_scr_val_indif_pnt_1mth,
           ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr, ddis_scr_val_indif_pnt_5yr) %>% 
-      mutate(dd_int1_2 = d1*((ddis_scr_val_indif_point_6h/100 - ddis_scr_val_indif_pnt_1da/100)/2),
-             dd_int2_2 = d2*((ddis_scr_val_indif_pnt_1da/100 - ddis_scr_val_indif_pnt_1week/100)/2),
-             dd_int3_2 = d3*((ddis_scr_val_indif_pnt_1week/100 - ddis_scr_val_indif_pnt_1mth/100)/2),
-             dd_int4_2 = d4*((ddis_scr_val_indif_pnt_1mth/100 - ddis_scr_val_indif_pnt_3mth/100)/2),
-             dd_int5_2 = d5*((ddis_scr_val_indif_pnt_3mth/100 - ddis_scr_val_indif_pnt_1yr/100)/2),
-             dd_int6_2 = d6*((ddis_scr_val_indif_pnt_1yr/100 - ddis_scr_val_indif_pnt_5yr/100)/2),
-             auc_2 = dd_int1_2 + dd_int2_2 + dd_int3_2 + dd_int4_2 + dd_int5_2 + dd_int6_2) %>% 
-     filter(auc_2 >= 0) %>%  #end AUC, calculate mean indifference point
+  mutate(ddis_scr_val_indif_point_6h = ddis_scr_val_indif_point_6h/100,
+         ddis_scr_val_indif_pnt_1da = ddis_scr_val_indif_pnt_1da/100,
+         ddis_scr_val_indif_pnt_1week = ddis_scr_val_indif_pnt_1week/100,
+         ddis_scr_val_indif_pnt_1mth = ddis_scr_val_indif_pnt_1mth/100,
+          ddis_scr_val_indif_pnt_3mth = ddis_scr_val_indif_pnt_3mth/100,
+         ddis_scr_val_indif_pnt_1yr = ddis_scr_val_indif_pnt_1yr/100,
+         ddis_scr_val_indif_pnt_5yr = ddis_scr_val_indif_pnt_5yr/100
+         ) %>% 
+      mutate(dd_int0 = d0*((1+ddis_scr_val_indif_point_6h)/2),
+             dd_int1 = d1*((ddis_scr_val_indif_point_6h + ddis_scr_val_indif_pnt_1da)/2),
+             dd_int2 = d2*((ddis_scr_val_indif_pnt_1da + ddis_scr_val_indif_pnt_1week)/2),
+             dd_int3 = d3*((ddis_scr_val_indif_pnt_1week + ddis_scr_val_indif_pnt_1mth)/2),
+             dd_int4 = d4*((ddis_scr_val_indif_pnt_1mth + ddis_scr_val_indif_pnt_3mth)/2),
+             dd_int5 = d5*((ddis_scr_val_indif_pnt_3mth + ddis_scr_val_indif_pnt_1yr)/2),
+             dd_int6 = d6*((ddis_scr_val_indif_pnt_1yr + ddis_scr_val_indif_pnt_5yr)/2),
+             auc = dd_int0 + dd_int1 + dd_int2 + dd_int3 + dd_int4 + dd_int5 + dd_int6) %>% 
+     #filter(auc >= 0) %>%  #end AUC, calculate mean indifference point
      mutate(mean_indifference = rowMeans(select(., c(ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week,
                                                      ddis_scr_val_indif_pnt_1mth, ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr,
                                                      ddis_scr_val_indif_pnt_5yr))))
@@ -181,7 +191,7 @@ combineddata<-left_join(brainconn1,brainconn2)
 combineddata<-left_join(combineddata,famadversity)
 combineddata<-left_join(combineddata,rhds)
 combineddata<-left_join(combineddata,delay_data)
-combineddata<-left_join(combineddata,cashchoice, by = "src_subject_id")
+#combineddata<-left_join(combineddata,cashchoice, by = "src_subject_id")
 
 #combinedata_delay <- left_join(combineddata,delay_data, by = "src_subject_id")
 
@@ -195,7 +205,7 @@ Models
 ```{r}
 # Linear mixed model
 str(subset)
-null=lm(auc_2 ~ interview_age.x,
+null=lm(auc ~ interview_age,
                        data=combineddata)
 summary(null)
 
@@ -207,7 +217,7 @@ summary(null_cash)
 
 # if age not related, remove from resting state model below
 #frontoparietal, right accumbens
-restingstate_fopa_acc_r=lm(auc_2 ~ #interview_age +
+restingstate_fopa_acc_r=lm(auc ~ #interview_age +
                  rsfmri_cor_ngd_fopa_scs_aarh,
         data=combineddata)
 summary(restingstate_fopa_acc_r)
@@ -215,13 +225,13 @@ summary(restingstate_fopa_acc_r)
 anova(null_cash, restingstate_fopa_acc_r)
 
 #frontoparietal, left accumbens
-restingstate_fopa_acc_l=lm(auc_2 ~ #interview_age +
+restingstate_fopa_acc_l=lm(auc ~ #interview_age +
                  rsfmri_cor_ngd_fopa_scs_aalh,
         data=combineddata)
 summary(restingstate_fopa_acc_l)
 
 #default to frontoparietal
-restingstate_default=lm(auc_2 ~ #interview_age +
+restingstate_default=lm(auc ~ #interview_age +
                  rsfmri_c_ngd_dt_ngd_fo,
         data=combineddata)
 summary(restingstate_default)
@@ -229,30 +239,34 @@ summary(restingstate_default)
 
 
 # if RS not related, remove from resting state model below
-deprivation=lm(auc_2 ~ #interview_age +
+deprivation=lm(auc ~ #interview_age +
                  reshist_addr1_adi_perc,
                 data=combineddata)
 
 summary(deprivation)
 #new
-deprivation=lm(auc_2 ~ rsfmri_cor_ngd_fopa_scs_aalh+
+deprivation_rs=lm(auc ~ rsfmri_cor_ngd_fopa_scs_aalh+
                  reshist_addr1_adi_perc,
-                data=subset)
+                data=combineddata)
 
-summary(deprivation)
+summary(deprivation_rs)
 
-famadversitymod=lm(auc_2 ~ #interview_age+
+#compare models
+anova(deprivation, deprivation_rs)   #wrong dimensions
+anova(restingstate_fopa_acc_l, deprivation_rs) #wrong dimensions
+
+famadversitymod=lm(auc ~ #interview_age+
                      sum,
                data=combineddata)
 
 summary(famadversitymod)
 
 #new
-famadversitymod=lm(auc_2 ~ rsfmri_cor_ngd_fopa_scs_aalh+
+famadversitymod_rs=lm(auc ~ rsfmri_cor_ngd_fopa_scs_aalh+
                      sum,
-               data=subset)
+               data=combineddata)
 
-summary(famadversitymod)
+summary(famadversitymod_rs)
 
 #test parental monitoring?
 
@@ -379,7 +393,7 @@ delay_data_all <- delay_data_all %>%
              dd_int5 = d5*((ddis_scr_val_indif_pnt_3mth + ddis_scr_val_indif_pnt_1yr)/2),
              dd_int6 = d6*((ddis_scr_val_indif_pnt_1yr + ddis_scr_val_indif_pnt_5yr)/2),
              auc = dd_int0 + dd_int1 + dd_int2 + dd_int3 + dd_int4 + dd_int5 + dd_int6) %>% 
-     #filter(auc_2 >= 0) %>%  #end AUC, calculate mean indifference point
+     #filter(auc >= 0) %>%  #end AUC, calculate mean indifference point
      mutate(mean_indifference = rowMeans(select(., c(ddis_scr_val_indif_point_6h, ddis_scr_val_indif_pnt_1da, ddis_scr_val_indif_pnt_1week,
                                                      ddis_scr_val_indif_pnt_1mth, ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr,
                                                      ddis_scr_val_indif_pnt_5yr))))
