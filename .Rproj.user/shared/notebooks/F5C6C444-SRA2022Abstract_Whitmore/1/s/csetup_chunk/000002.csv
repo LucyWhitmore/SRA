@@ -1,7 +1,0 @@
-"0","knitr::opts_chunk$set(echo = FALSE)"
-"0",""
-"0","# Turn off scientific notation"
-"0","options(scipen=999)"
-"0",""
-"0","# Setting the seed sets the starting number used to generate a sequence of random numbers, which ensures that you get the same result if you start with that same seed each time you run the same process"
-"0","set.seed(seed = 711711)"

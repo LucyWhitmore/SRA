@@ -1,8 +1,0 @@
-"0","delay_disc_test <- data.frame(ddis_scr_val_indif_point_6h = sample(seq(0.1, 0.9, by = 0.1),replace=T, 10),"
-"0","  ddis_scr_val_indif_pnt_1da = sample(seq(0.1, 0.9, by = 0.1),replace=T, 10),"
-"0","  ddis_scr_val_indif_pnt_1week = sample(seq(0.1, 0.9, by = 0.1),replace=T, 10),"
-"0","  ddis_scr_val_indif_pnt_1mth  = sample(seq(0.1, 0.9, by = 0.1),replace=T, 10),"
-"0","  ddis_scr_val_indif_pnt_3mth  = sample(seq(0.1, 0.9, by = 0.1),replace=T, 10),"
-"0","  ddis_scr_val_indif_pnt_1yr = sample(seq(0.1, 0.9, by = 0.1),replace=T, 10),"
-"0","  ddis_scr_val_indif_pnt_5yr  = sample(seq(0.1, 0.9, by = 0.1),replace=T, 10)) "
-"0",""
