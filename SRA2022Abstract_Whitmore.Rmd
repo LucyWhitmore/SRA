@@ -31,7 +31,7 @@ Load ABCD datasets, filter, combine, subset
 #ABCD4pt0/
 #ABCD3pt0/ABCDStudyNDA/
 
-qc<- rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/abcd_fsurfqc01.txt")%>% #changed from freesqc01.txt
+qc_4pt0<- rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/abcd_fsurfqc01.txt")%>% #changed from freesqc01.txt
   filter(!collection_title=="collection_title") %>%
   select(src_subject_id, eventname, fsqc_qc)  %>%
   mutate(src_subject_id=as.factor(src_subject_id),
@@ -45,6 +45,13 @@ qc_3pt0 <- rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD3pt0/ABCDStudyNDA/fre
          fsqc_qc=as.numeric(fsqc_qc))%>%
   filter(eventname=="baseline_year_1_arm_1", fsqc_qc==1)
 
+qc <- rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/abcd_imgincl01.txt")%>% #changed from freesqc01.txt
+  filter(!collection_title=="collection_title") %>%
+  select(src_subject_id, eventname, imgincl_rsfmri_include)  %>%
+  mutate(src_subject_id=as.factor(src_subject_id),
+         fsqc_qc=as.numeric(imgincl_rsfmri_include))%>%
+  filter(eventname=="baseline_year_1_arm_1", imgincl_rsfmri_include == 1)
+
 brainconn1<-rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/mrirscor02.txt") %>%
   filter(!collection_title=="collection_title") %>%
   select(src_subject_id, eventname,rsfmri_cor_ngd_fopa_scs_aalh,
@@ -55,7 +62,7 @@ brainconn1<-rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/mrirscor02.txt"
   filter(eventname=="baseline_year_1_arm_1", 
          !is.na(rsfmri_cor_ngd_fopa_scs_aalh),
          !is.na(rsfmri_cor_ngd_fopa_scs_aarh),
-         src_subject_id %in% qc_3pt0$src_subject_id) %>% #changed
+         src_subject_id %in% qc$src_subject_id) %>% #changed
   filter(between(rsfmri_cor_ngd_fopa_scs_aalh, quantile(rsfmri_cor_ngd_fopa_scs_aalh, .0025), quantile(rsfmri_cor_ngd_fopa_scs_aalh, .9975)),
          between(rsfmri_cor_ngd_fopa_scs_aarh, quantile(rsfmri_cor_ngd_fopa_scs_aarh, .0025), quantile(rsfmri_cor_ngd_fopa_scs_aarh, .9975)))
 
@@ -67,7 +74,7 @@ brainconn2<-rio::import("/Volumes/devbrainlab/ABCD_Data/ABCD4pt0/abcd_betnet02.t
          rsfmri_c_ngd_ntpoints=as.numeric(rsfmri_c_ngd_ntpoints))%>%
   filter(eventname=="baseline_year_1_arm_1", 
          rsfmri_c_ngd_ntpoints>375, 
-         src_subject_id %in% qc_3pt0$src_subject_id, !is.na(rsfmri_c_ngd_dt_ngd_fo)) %>% #changed to alternate_qc
+         src_subject_id %in% qc$src_subject_id, !is.na(rsfmri_c_ngd_dt_ngd_fo)) %>% #changed to alternate_qc
   filter(between(rsfmri_c_ngd_dt_ngd_fo, quantile(rsfmri_c_ngd_dt_ngd_fo, .0025), quantile(rsfmri_c_ngd_dt_ngd_fo, .9975)))
 
 #Adding delay discounting here, w/ manual exclusion
@@ -211,27 +218,29 @@ summary(null)
 
 ggplot(subset, aes(x=interview_age, y=auc_2)) + geom_point()
 
-null_cash=lm(auc_2 ~ interview_age.y,
-                       data=combineddata)
-summary(null_cash)
+#null_cash=lm(auc_2 ~ interview_age.y,
+             #          data=combineddata)
+#summary(null_cash)
 
 # if age not related, remove from resting state model below
 #frontoparietal, right accumbens
-restingstate_fopa_acc_r=lm(auc ~ #interview_age +
+restingstate_fopa_acc_r=lm(auc ~ interview_age +
                  rsfmri_cor_ngd_fopa_scs_aarh,
         data=combineddata)
 summary(restingstate_fopa_acc_r)
 
-anova(null_cash, restingstate_fopa_acc_r)
+anova(null, restingstate_fopa_acc_r)
 
 #frontoparietal, left accumbens
-restingstate_fopa_acc_l=lm(auc ~ #interview_age +
+restingstate_fopa_acc_l=lm(auc ~ interview_age +
                  rsfmri_cor_ngd_fopa_scs_aalh,
         data=combineddata)
 summary(restingstate_fopa_acc_l)
 
+anova(null, restingstate_fopa_acc_l)
+
 #default to frontoparietal
-restingstate_default=lm(auc ~ #interview_age +
+restingstate_default=lm(auc ~ interview_age +
                  rsfmri_c_ngd_dt_ngd_fo,
         data=combineddata)
 summary(restingstate_default)
@@ -239,30 +248,40 @@ summary(restingstate_default)
 
 
 # if RS not related, remove from resting state model below
-deprivation=lm(auc ~ #interview_age +
+deprivation=lm(auc ~ interview_age +
                  reshist_addr1_adi_perc,
                 data=combineddata)
 
 summary(deprivation)
 #new
-deprivation_rs=lm(auc ~ rsfmri_cor_ngd_fopa_scs_aalh+
+deprivation_rs=lm(auc ~ interview_age + rsfmri_cor_ngd_fopa_scs_aalh+
                  reshist_addr1_adi_perc,
                 data=combineddata)
 
 summary(deprivation_rs)
 
+
+#
+deprivation_rs_int=lm(auc ~ rsfmri_cor_ngd_fopa_scs_aalh*
+                 reshist_addr1_adi_perc,
+                data=combineddata)
+summary(deprivation_rs_int)
+
+
 #compare models
 anova(deprivation, deprivation_rs)   #wrong dimensions
 anova(restingstate_fopa_acc_l, deprivation_rs) #wrong dimensions
 
-famadversitymod=lm(auc ~ #interview_age+
+famadversitymod=lm(auc ~ interview_age+
                      sum,
                data=combineddata)
 
 summary(famadversitymod)
 
+#anova(null, famadversitymod)
+
 #new
-famadversitymod_rs=lm(auc ~ rsfmri_cor_ngd_fopa_scs_aalh+
+famadversitymod_rs=lm(auc ~ interview_age + rsfmri_cor_ngd_fopa_scs_aalh+
                      sum,
                data=combineddata)
 
