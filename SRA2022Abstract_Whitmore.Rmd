@@ -216,7 +216,7 @@ null=lm(auc ~ interview_age,
                        data=combineddata)
 summary(null)
 
-ggplot(subset, aes(x=interview_age, y=auc_2)) + geom_point()
+#ggplot(subset, aes(x=interview_age, y=auc_2)) + geom_point()
 
 #null_cash=lm(auc_2 ~ interview_age.y,
              #          data=combineddata)
@@ -248,35 +248,30 @@ summary(restingstate_default)
 
 
 # if RS not related, remove from resting state model below
-deprivation=lm(auc ~ interview_age +
-                 reshist_addr1_adi_perc,
-                data=combineddata)
+#deprivation=lm(auc ~ interview_age +
+  #               reshist_addr1_adi_perc,
+   #             data=combineddata)
 
-summary(deprivation)
+#summary(deprivation)
+
+
 #new
 deprivation_rs=lm(auc ~ interview_age + rsfmri_cor_ngd_fopa_scs_aalh+
                  reshist_addr1_adi_perc,
                 data=combineddata)
-
 summary(deprivation_rs)
 
 
 #
-deprivation_rs_int=lm(auc ~ rsfmri_cor_ngd_fopa_scs_aalh*
+deprivation_rs_int=lm(auc ~ interview_age + rsfmri_cor_ngd_fopa_scs_aalh*
                  reshist_addr1_adi_perc,
                 data=combineddata)
 summary(deprivation_rs_int)
 
 
 #compare models
-anova(deprivation, deprivation_rs)   #wrong dimensions
+#anova(deprivation, deprivation_rs)   #wrong dimensions
 anova(restingstate_fopa_acc_l, deprivation_rs) #wrong dimensions
-
-famadversitymod=lm(auc ~ interview_age+
-                     sum,
-               data=combineddata)
-
-summary(famadversitymod)
 
 #anova(null, famadversitymod)
 
@@ -287,31 +282,20 @@ famadversitymod_rs=lm(auc ~ interview_age + rsfmri_cor_ngd_fopa_scs_aalh+
 
 summary(famadversitymod_rs)
 
+
+#total model
+
+total_model=lm(auc ~ interview_age + rsfmri_cor_ngd_fopa_scs_aalh+ reshist_addr1_adi_perc +
+                     sum,
+               data=combineddata)
+
+summary(total_model)
+
+anova(deprivation_rs, total_model)
+
 #test parental monitoring?
 
-# Figure out later 
-# longtempdisc<-tempdisc %>%
-#   pivot_longer(3:9,names_to = "delay",names_prefix = "ddis_scr_val_indif_point_")
-# 
-# # Calculate AUC
-# test<-AUC(dat = tempdisc,
-#     indiff = "prop_indiff",
-#     x_axis = "prob",
-#     amount = 1,
-#     grouping = "subject",
-#     prob_disc = TRUE)
-# library(discAUC)
 
-# ## Latent change score model
-# braintempdisc<-left_join(
-#   (combineddata %>%
-#      select(src_subject_id,eventname,rsfmri_c_ngd_dt_ngd_fo) %>%
-#      spread(eventname,rsfmri_c_ngd_dt_ngd_fo) %>%
-#      mutate(BRAIN1=baseline_year_1_arm_1,
-#             BRAIN2=.[2]) %>%
-#      select(src_subject_id,BRAIN1,BRAIN2)),
-# 
-# 
 ```
 
 testing 3.0 vs 4.0
