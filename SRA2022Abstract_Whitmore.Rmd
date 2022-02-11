@@ -20,7 +20,7 @@ list.of.packages <- c("Hmisc","Rmisc","tidyr", "nlme", "caret",
                       "MuMIn","mgcv","broom", "gratia", 
                       "splines","psych","table1", "rio",
                       "skimr","magrittr","qwraps2", "sjPlot",
-                      "discAUC")
+                      "discAUC", "MetBrewer")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 lapply(list.of.packages, library, character.only = TRUE)
@@ -411,3 +411,41 @@ ggplot(delay_data_all, aes(x=auc))+
      #                     ddis_scr_val_indif_pnt_3mth, ddis_scr_val_indif_pnt_1yr, ddis_scr_val_indif_pnt_5yr), names_to = "Var", values_to = "Val")
 
 ```
+
+
+Plotting
+```{r}
+#Get hex codes for metbrewer colors
+met.brewer("Veronese")
+as.character(met.brewer("Veronese"))
+
+
+# Distribution of AUC
+ggplot(combineddata, aes(x=auc))+
+  geom_histogram()
+
+# Distribution of family adversity
+ggplot(combineddata, aes(x=sum))+
+  geom_histogram(binwidth = 1)
+
+# Distribution of neighborhood income
+p <- ggplot(combineddata, aes(x=reshist_addr1_adi_perc))+
+  geom_histogram(binwidth = 10) 
+p + scale_color_manual(values=met.brewer("Greek"))
+
+# Distribution of resting state
+met.brewer("Veronese")
+ggplot(combineddata, aes(x=rsfmri_cor_ngd_fopa_scs_aalh)) +
+  geom_histogram(fill ="#6e948c", bins=30) +
+  theme_classic()
+
+# Plot models
+plot_model(famadversitymod_rs, type = "std", colors = "#67322e", title = "AUC", axis.labels = c("Family Adversity", "Frontoparietal-Left Accumbens Connectivity", "Age"), show.values = TRUE) + theme_minimal()
+#plot_model(famadversitymod_rs, type = "std", colors = "#67322e", title = "AUC", show.values = TRUE) + theme_minimal()
+
+plot_model(deprivation_rs, type = "std", colors = "#67322e", title = "AUC", axis.labels = c("Neighborhood Adversity", "Frontoparietal-Left Accumbens Connectivity", "Age"), show.values = TRUE) + theme_minimal()
+#plot_model(deprivation_rs, type = "std", colors = "#67322e", title = "AUC", show.values = TRUE) + theme_minimal()
+
+
+```
+
